@@ -1,4 +1,4 @@
-import { copyFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { findDownloadedVideo, runDownloader } from './cli.ts'
@@ -28,7 +28,7 @@ export class YouTubeDownloader implements Downloader {
       // yt-dlp persists refreshed cookies when it exits. Keep the configured
       // file immutable so it can safely be a read-only Docker secret.
       const cookiesPath = join(request.outputDirectory, 'cookies.txt')
-      await copyFile(this.cookiesPath, cookiesPath)
+      await writeFile(cookiesPath, await readFile(this.cookiesPath))
       command.push('--cookies', cookiesPath)
     }
 
