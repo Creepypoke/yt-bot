@@ -2,6 +2,7 @@ export interface DownloadRequest {
   requestId: string
   url: string
   outputDirectory: string
+  signal: AbortSignal
 }
 
 export interface Downloader {

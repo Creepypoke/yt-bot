@@ -80,6 +80,7 @@ async function readProcessStderr(
 export async function runDownloader(
   command: string[],
   requestId: string,
+  signal?: AbortSignal,
 ): Promise<void> {
   let process: Bun.Subprocess<'ignore', 'ignore', 'pipe'>
   const commandName = command[0] ?? 'unknown'
@@ -110,6 +111,9 @@ export async function runDownloader(
     )
   }
 
+  const abortProcess = () => process.kill()
+  signal?.addEventListener('abort', abortProcess, { once: true })
+
   const stderrPromise = readProcessStderr(
     process.stderr,
     commandName,
@@ -125,6 +129,7 @@ export async function runDownloader(
   }, PROCESS_HEARTBEAT_INTERVAL_MS)
 
   const exitCode = await process.exited
+  signal?.removeEventListener('abort', abortProcess)
   clearInterval(heartbeat)
   const stderr = await stderrPromise
 

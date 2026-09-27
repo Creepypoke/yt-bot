@@ -44,8 +44,13 @@ export async function compressVideoTo480p(
   inputPath: string,
   outputDirectory: string,
   requestId: string,
+  signal: AbortSignal,
 ): Promise<string> {
   const outputPath = join(outputDirectory, 'video-480p.mp4')
-  await runDownloader(buildCompressionCommand(inputPath, outputPath), requestId)
+  await runDownloader(
+    buildCompressionCommand(inputPath, outputPath),
+    requestId,
+    signal,
+  )
   return outputPath
 }

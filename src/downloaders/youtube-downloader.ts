@@ -33,7 +33,7 @@ export class YouTubeDownloader implements Downloader {
     }
 
     command.push('--', request.url)
-    await runDownloader(command, request.requestId)
+    await runDownloader(command, request.requestId, request.signal)
 
     return findDownloadedVideo(request.outputDirectory, request.requestId)
   }

@@ -15,6 +15,7 @@ import { parseVideoUrl, type VideoSource } from '../url-parser.ts'
 import { compressVideoTo480p } from '../video-compressor.ts'
 
 const activeUsers = new Set<number>()
+const activeDownloads = new Set<AbortController>()
 const downloaders: Record<VideoSource, Downloader> = {
   youtube: new YouTubeDownloader(config.YOUTUBE_COOKIES),
   instagram: new InstagramDownloader(config.INSTAGRAM_COOKIES),
@@ -44,6 +45,11 @@ function formatBytes(bytes: number): string {
 }
 
 class FileTooLargeError extends Error {}
+
+export function cancelActiveDownloads(): number {
+  for (const controller of activeDownloads) controller.abort()
+  return activeDownloads.size
+}
 
 export const downloadComposer = new Composer()
   .extend(composer)
@@ -80,6 +86,8 @@ export const downloadComposer = new Composer()
     }
 
     activeUsers.add(userId)
+    const abortController = new AbortController()
+    activeDownloads.add(abortController)
     const requestId = randomUUID().slice(0, 8)
     const startedAt = performance.now()
     let temporaryDirectory: string | undefined
@@ -110,6 +118,7 @@ export const downloadComposer = new Composer()
         requestId,
         url: parsedUrl.url,
         outputDirectory: temporaryDirectory,
+        signal: abortController.signal,
       })
       const downloadedFileSize = (await stat(videoPath)).size
       logger.info('download.media.completed', {
@@ -129,6 +138,7 @@ export const downloadComposer = new Composer()
           videoPath,
           temporaryDirectory,
           requestId,
+          abortController.signal,
         )
         logger.info('download.compression.completed', {
           requestId,
@@ -187,6 +197,7 @@ export const downloadComposer = new Composer()
       }
     } finally {
       activeUsers.delete(userId)
+      activeDownloads.delete(abortController)
 
       if (temporaryDirectory) {
         await rm(temporaryDirectory, { recursive: true, force: true }).catch(

@@ -11,6 +11,8 @@ services:
       YOUTUBE_COOKIES: /run/secrets/cookies.txt
     init: true
     restart: unless-stopped
+    expose:
+      - "3000"
     volumes:
       - type: bind
         source: /data/coolify/secrets/yt-bot/cookies.txt
