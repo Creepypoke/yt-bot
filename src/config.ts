@@ -1,0 +1,24 @@
+import { resolve } from 'node:path'
+
+import env from 'env-var'
+
+export const config = {
+  NODE_ENV: env
+    .get('NODE_ENV')
+    .default('development')
+    .asEnum(['production', 'test', 'development']),
+  LOG_LEVEL: env
+    .get('LOG_LEVEL')
+    .default('info')
+    .asEnum(['debug', 'info', 'warn', 'error']),
+  BOT_TOKEN: env.get('BOT_TOKEN').required().asString(),
+  DOWNLOAD_DIR: resolve(
+    env.get('DOWNLOAD_DIR').default('./downloads').asString(),
+  ),
+  // Bytes. Telegram's own upload limit may be lower than this value.
+  MAX_FILE_SIZE: env.get('MAX_FILE_SIZE').default('50000000').asIntPositive(),
+  // Transcode every downloaded video to an MP4 no wider than 480 pixels.
+  COMPRESS_TO_480P: env.get('COMPRESS_TO_480P').default('true').asBoolStrict(),
+  INSTAGRAM_COOKIES: env.get('INSTAGRAM_COOKIES').asString(),
+  YOUTUBE_COOKIES: env.get('YOUTUBE_COOKIES').asString(),
+}

@@ -1,0 +1,24 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      DOWNLOAD_DIR: /app/downloads
+      INSTAGRAM_COOKIES: /run/secrets/cookies.txt
+      YOUTUBE_COOKIES: /run/secrets/cookies.txt
+    init: true
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./cookies.txt
+        target: /run/secrets/cookies.txt
+        read_only: true
+      - type: volume
+        source: video-downloads
+        target: /app/downloads
+
+volumes:
+  video-downloads:

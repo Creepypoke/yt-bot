@@ -1,0 +1,16 @@
+[
+  {
+    "label": "bun: dev",
+    "command": "bun",
+    "args": ["run", "dev"],
+    "use_new_terminal": true,
+    "reveal": "always"
+  },
+  {
+    "label": "bun: test",
+    "command": "bun",
+    "args": ["test"],
+    "use_new_terminal": true,
+    "reveal": "always"
+  }
+]
