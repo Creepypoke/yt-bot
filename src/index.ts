@@ -41,3 +41,5 @@ logger.info('bot.starting', {
   instagramCookiesConfigured: Boolean(config.INSTAGRAM_COOKIES),
 })
 await bot.start()
+logger.error('bot.stopped_unexpectedly')
+process.exit(1)
