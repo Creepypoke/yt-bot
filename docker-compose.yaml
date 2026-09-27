@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     volumes:
       - type: bind
-        source: ./cookies.txt
+        source: /data/coolify/secrets/yt-bot/cookies.txt
         target: /run/secrets/cookies.txt
         read_only: true
       - type: volume
