@@ -26,13 +26,27 @@ cp .env.example .env
 | `MAX_FILE_SIZE`     | нет         | Максимальный размер отправляемого файла в байтах, по умолчанию `50000000` |
 | `COMPRESS_TO_480P`  | нет         | Сжимать все видео до ширины не более 480 px; по умолчанию `true`          |
 | `INSTAGRAM_COOKIES` | нет         | Путь к cookies в Netscape-формате для Instagram                           |
+| `INSTAGRAM_PROXY`   | нет         | URL прокси для `gallery-dl`, включая `socks5://` и `socks5h://`           |
 | `YOUTUBE_COOKIES`   | нет         | Путь к cookies в Netscape-формате для YouTube                             |
+| `YOUTUBE_PROXY`     | нет         | URL прокси для `yt-dlp`, включая `socks5://` и `socks5h://`               |
 
 YouTube cookies могут повысить стабильность при `HTTP 403`, проверках аккаунта
 или ограничениях по возрасту. Экспортируйте cookies в Netscape-формате из
 отдельного YouTube-аккаунта и передайте путь через `YOUTUBE_COOKIES`. Один файл
 может содержать cookies для обоих сервисов. Не добавляйте cookies и `.env` в
 репозиторий.
+
+Прокси настраивается независимо для каждого загрузчика и не используется для
+подключения бота к Telegram API. Чтобы DNS-запросы также выполнялись через
+прокси, используйте схему `socks5h://`:
+
+```env
+YOUTUBE_PROXY=socks5h://user:password@proxy.example.com:1080
+INSTAGRAM_PROXY=socks5h://user:password@proxy.example.com:1080
+```
+
+Если логин или пароль содержит специальные символы, закодируйте их как URL
+components. Не добавляйте адреса прокси с учетными данными в репозиторий.
 
 ## Локальный запуск
 

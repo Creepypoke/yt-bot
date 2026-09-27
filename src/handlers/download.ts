@@ -17,8 +17,11 @@ import { compressVideoTo480p } from '../video-compressor.ts'
 const activeUsers = new Set<number>()
 const activeDownloads = new Set<AbortController>()
 const downloaders: Record<VideoSource, Downloader> = {
-  youtube: new YouTubeDownloader(config.YOUTUBE_COOKIES),
-  instagram: new InstagramDownloader(config.INSTAGRAM_COOKIES),
+  youtube: new YouTubeDownloader(config.YOUTUBE_COOKIES, config.YOUTUBE_PROXY),
+  instagram: new InstagramDownloader(
+    config.INSTAGRAM_COOKIES,
+    config.INSTAGRAM_PROXY,
+  ),
 }
 
 function userFacingError(error: unknown): string {

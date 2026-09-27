@@ -5,7 +5,10 @@ import { findDownloadedVideo, runDownloader } from './cli.ts'
 import type { Downloader, DownloadRequest } from './downloader.ts'
 
 export class YouTubeDownloader implements Downloader {
-  constructor(private readonly cookiesPath?: string) {}
+  constructor(
+    private readonly cookiesPath?: string,
+    private readonly proxy?: string,
+  ) {}
 
   async download(request: DownloadRequest): Promise<string> {
     const command = [
@@ -23,6 +26,10 @@ export class YouTubeDownloader implements Downloader {
       '--output',
       join(request.outputDirectory, 'video.%(ext)s'),
     ]
+
+    if (this.proxy) {
+      command.push('--proxy', this.proxy)
+    }
 
     if (this.cookiesPath) {
       // yt-dlp persists refreshed cookies when it exits. Keep the configured

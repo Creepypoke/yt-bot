@@ -30,5 +30,7 @@ export const config = {
       return Number.isSafeInteger(id) && id > 0 ? [id] : []
     }),
   INSTAGRAM_COOKIES: env.get('INSTAGRAM_COOKIES').asString(),
+  INSTAGRAM_PROXY: env.get('INSTAGRAM_PROXY').asString(),
   YOUTUBE_COOKIES: env.get('YOUTUBE_COOKIES').asString(),
+  YOUTUBE_PROXY: env.get('YOUTUBE_PROXY').asString(),
 }

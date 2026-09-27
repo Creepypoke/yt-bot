@@ -2,7 +2,10 @@ import { findDownloadedVideo, runDownloader } from './cli.ts'
 import type { Downloader, DownloadRequest } from './downloader.ts'
 
 export class InstagramDownloader implements Downloader {
-  constructor(private readonly cookiesPath?: string) {}
+  constructor(
+    private readonly cookiesPath?: string,
+    private readonly proxy?: string,
+  ) {}
 
   async download(request: DownloadRequest): Promise<string> {
     const command = [
@@ -11,6 +14,10 @@ export class InstagramDownloader implements Downloader {
       request.outputDirectory,
       '--no-mtime',
     ]
+
+    if (this.proxy) {
+      command.push('--proxy', this.proxy)
+    }
 
     if (this.cookiesPath) {
       command.push('--cookies', this.cookiesPath)
