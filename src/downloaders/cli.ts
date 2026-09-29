@@ -5,6 +5,7 @@ import { logger } from '../logger.ts'
 import { DownloadError } from './downloader.ts'
 
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.mkv', '.webm'])
+const AUDIO_EXTENSIONS = new Set(['.mp3'])
 const PROCESS_HEARTBEAT_INTERVAL_MS = 15_000
 const STDERR_TAIL_LENGTH = 2_000
 
@@ -154,17 +155,20 @@ export async function runDownloader(
   })
 }
 
-async function collectVideoFiles(directory: string): Promise<string[]> {
+async function collectMediaFiles(
+  directory: string,
+  extensions: Set<string>,
+): Promise<string[]> {
   const result: string[] = []
 
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
 
     if (entry.isDirectory()) {
-      result.push(...(await collectVideoFiles(path)))
+      result.push(...(await collectMediaFiles(path, extensions)))
     } else if (
       entry.isFile() &&
-      VIDEO_EXTENSIONS.has(extname(entry.name).toLowerCase())
+      extensions.has(extname(entry.name).toLowerCase())
     ) {
       result.push(path)
     }
@@ -177,7 +181,7 @@ export async function findDownloadedVideo(
   directory: string,
   requestId: string,
 ): Promise<string> {
-  const files = await collectVideoFiles(directory)
+  const files = await collectMediaFiles(directory, VIDEO_EXTENSIONS)
 
   logger.info('downloader.files.discovered', {
     directory,
@@ -205,4 +209,31 @@ export async function findDownloadedVideo(
   })
 
   return video.path
+}
+
+export async function findDownloadedAudio(
+  directory: string,
+  requestId: string,
+): Promise<string> {
+  const files = await collectMediaFiles(directory, AUDIO_EXTENSIONS)
+
+  logger.info('downloader.audio_files.discovered', {
+    directory,
+    requestId,
+    audioFileCount: files.length,
+  })
+
+  if (files.length === 0) {
+    throw new DownloadError(
+      'VIDEO_NOT_FOUND',
+      'Downloader completed without producing an audio file',
+    )
+  }
+
+  const filesWithSizes = await Promise.all(
+    files.map(async (path) => ({ path, size: (await stat(path)).size })),
+  )
+  filesWithSizes.sort((left, right) => right.size - left.size)
+
+  return filesWithSizes[0]!.path
 }

@@ -28,6 +28,31 @@ describe('parseVideoUrl', () => {
 
   test('rejects regular YouTube videos', () => {
     expect(parseVideoUrl('https://youtube.com/watch?v=abc')).toBeUndefined()
+    expect(parseVideoUrl('https://youtu.be/abc')).toBeUndefined()
+  })
+
+  test('parses regular YouTube videos when explicitly allowed', () => {
+    expect(
+      parseVideoUrl('https://www.youtube.com/watch?v=abc_123&t=10', true),
+    ).toEqual({
+      source: 'youtube',
+      url: 'https://www.youtube.com/watch?v=abc_123&t=10',
+      isLongYouTubeVideo: true,
+    })
+    expect(
+      parseVideoUrl('Посмотри https://youtu.be/abc_123?si=test', true),
+    ).toEqual({
+      source: 'youtube',
+      url: 'https://youtu.be/abc_123?si=test',
+      isLongYouTubeVideo: true,
+    })
+    expect(
+      parseVideoUrl('https://m.youtube.com/watch?v=abc_123', true),
+    ).toEqual({
+      source: 'youtube',
+      url: 'https://m.youtube.com/watch?v=abc_123',
+      isLongYouTubeVideo: true,
+    })
   })
 
   test('rejects unsupported hosts that contain a supported name', () => {

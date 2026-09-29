@@ -1,5 +1,6 @@
 import { Composer } from 'gramio'
 
+import { config } from '../config.ts'
 import { logger } from '../logger.ts'
 import { composer } from '../plugins/index.ts'
 
@@ -11,7 +12,13 @@ export const startComposer = new Composer()
       chatId: context.chatId,
     })
 
+    const isAdmin = Boolean(
+      context.from?.id && config.BOT_ADMIN_IDS.includes(context.from.id),
+    )
+
     return context.send(
-      'Пришлите ссылку на YouTube Shorts или Instagram Reels — я скачаю и отправлю видео.',
+      isAdmin
+        ? 'Пришлите ссылку на YouTube-видео, YouTube Shorts или Instagram Reels. Для обычного YouTube-видео можно выбрать качество или MP3.'
+        : 'Пришлите ссылку на YouTube Shorts или Instagram Reels — я скачаю и отправлю видео.',
     )
   })

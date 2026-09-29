@@ -3,7 +3,12 @@ export interface DownloadRequest {
   url: string
   outputDirectory: string
   signal: AbortSignal
+  selection?: DownloadSelection
 }
+
+export type DownloadSelection =
+  | { type: 'video'; height: number }
+  | { type: 'audio' }
 
 export interface Downloader {
   download(request: DownloadRequest): Promise<string>
