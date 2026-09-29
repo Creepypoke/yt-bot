@@ -4,9 +4,10 @@ import { runDownloader } from './downloaders/cli.ts'
 
 const MAX_VIDEO_WIDTH = 480
 
-export function buildCompressionCommand(
+export function buildVideoTranscodingCommand(
   inputPath: string,
   outputPath: string,
+  videoFilter?: string,
 ): string[] {
   return [
     'ffmpeg',
@@ -19,8 +20,7 @@ export function buildCompressionCommand(
     '0:v:0',
     '-map',
     '0:a?',
-    '-vf',
-    `scale='trunc(min(${MAX_VIDEO_WIDTH},iw)/2)*2':-2`,
+    ...(videoFilter ? ['-vf', videoFilter] : []),
     '-c:v',
     'libx264',
     '-preset',
@@ -40,6 +40,17 @@ export function buildCompressionCommand(
   ]
 }
 
+export function buildCompressionCommand(
+  inputPath: string,
+  outputPath: string,
+): string[] {
+  return buildVideoTranscodingCommand(
+    inputPath,
+    outputPath,
+    `scale='trunc(min(${MAX_VIDEO_WIDTH},iw)/2)*2':-2`,
+  )
+}
+
 export async function compressVideoTo480p(
   inputPath: string,
   outputDirectory: string,
@@ -49,6 +60,21 @@ export async function compressVideoTo480p(
   const outputPath = join(outputDirectory, 'video-480p.mp4')
   await runDownloader(
     buildCompressionCommand(inputPath, outputPath),
+    requestId,
+    signal,
+  )
+  return outputPath
+}
+
+export async function transcodeVideoForTelegram(
+  inputPath: string,
+  outputDirectory: string,
+  requestId: string,
+  signal: AbortSignal,
+): Promise<string> {
+  const outputPath = join(outputDirectory, 'video-compatible.mp4')
+  await runDownloader(
+    buildVideoTranscodingCommand(inputPath, outputPath),
     requestId,
     signal,
   )

@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { buildCompressionCommand } from './video-compressor.ts'
+import {
+  buildCompressionCommand,
+  buildVideoTranscodingCommand,
+} from './video-compressor.ts'
 
 describe('buildCompressionCommand', () => {
   test('creates a Telegram-compatible 480px-wide MP4 command', () => {
@@ -22,5 +25,15 @@ describe('buildCompressionCommand', () => {
 
     expect(command).toContain('folder with spaces/input.mov')
     expect(command.at(-1)).toBe('another folder/output.mp4')
+  })
+
+  test('creates a Telegram-compatible command without resizing video', () => {
+    const command = buildVideoTranscodingCommand('input.webm', 'output.mp4')
+
+    expect(command).not.toContain('-vf')
+    expect(command).toContain('libx264')
+    expect(command).toContain('yuv420p')
+    expect(command).toContain('aac')
+    expect(command.at(-1)).toBe('output.mp4')
   })
 })

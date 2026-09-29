@@ -20,7 +20,10 @@ import {
   type ParsedVideoUrl,
   type VideoSource,
 } from '../url-parser.ts'
-import { compressVideoTo480p } from '../video-compressor.ts'
+import {
+  compressVideoTo480p,
+  transcodeVideoForTelegram,
+} from '../video-compressor.ts'
 
 const activeUsers = new Set<number>()
 const activeDownloads = new Set<AbortController>()
@@ -139,7 +142,25 @@ async function downloadAndSend(
       elapsedMs: Math.round(performance.now() - startedAt),
     })
 
-    if (config.COMPRESS_TO_480P && !selection) {
+    if (selection?.type === 'video') {
+      await statusMessage.editText('Перекодирую для Telegram...')
+      logger.info('download.transcoding.starting', {
+        requestId,
+        inputFileSizeBytes: downloadedFileSize,
+        height: selection.height,
+      })
+      mediaPath = await transcodeVideoForTelegram(
+        mediaPath,
+        temporaryDirectory,
+        requestId,
+        abortController.signal,
+      )
+      logger.info('download.transcoding.completed', {
+        requestId,
+        outputFileSizeBytes: (await stat(mediaPath)).size,
+        elapsedMs: Math.round(performance.now() - startedAt),
+      })
+    } else if (config.COMPRESS_TO_480P && !selection) {
       await statusMessage.editText('Сжимаю...')
       logger.info('download.compression.starting', {
         requestId,
