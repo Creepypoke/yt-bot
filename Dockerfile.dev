@@ -1,7 +1,7 @@
 FROM oven/bun:1.3.2-debian
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates ffmpeg nodejs python3 python3-venv \
+    && apt-get install -y --no-install-recommends ca-certificates ffmpeg python3 python3-venv \
     && python3 -m venv /opt/downloaders \
     && /opt/downloaders/bin/pip install --no-cache-dir yt-dlp gallery-dl PySocks \
     && rm -rf /var/lib/apt/lists/*

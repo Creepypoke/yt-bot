@@ -74,7 +74,7 @@ export class YouTubeDownloader implements Downloader {
       '--no-playlist',
       '--no-progress',
       '--js-runtimes',
-      'node',
+      'bun',
       '--skip-download',
       '--write-info-json',
       '--output',
@@ -97,7 +97,7 @@ export class YouTubeDownloader implements Downloader {
       '--no-playlist',
       '--no-progress',
       '--js-runtimes',
-      'node',
+      'bun',
 
       '--restrict-filenames',
     ]
