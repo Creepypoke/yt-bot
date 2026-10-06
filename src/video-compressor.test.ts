@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildCompressionCommand,
   buildVideoTranscodingCommand,
+  calculateVideoBitrate,
 } from './video-compressor.ts'
 
 describe('buildCompressionCommand', () => {
@@ -35,5 +36,9 @@ describe('buildCompressionCommand', () => {
     expect(command).toContain('yuv420p')
     expect(command).toContain('aac')
     expect(command.at(-1)).toBe('output.mp4')
+  })
+
+  test('calculates a video bitrate that leaves room for audio and container data', () => {
+    expect(calculateVideoBitrate(60, 50_000_000)).toBe(6_146_346)
   })
 })

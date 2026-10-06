@@ -22,6 +22,7 @@ import {
 } from '../url-parser.ts'
 import {
   compressVideoTo480p,
+  TELEGRAM_UPLOAD_LIMIT_BYTES,
   transcodeVideoForTelegram,
 } from '../video-compressor.ts'
 
@@ -65,7 +66,7 @@ function userFacingError(error: unknown): string {
   }
 
   if (error instanceof FileTooLargeError) {
-    return `Файл слишком большой. Максимум: ${formatBytes(config.MAX_FILE_SIZE)}.`
+    return `Файл слишком большой. Максимум: ${formatBytes(error.maxFileSizeBytes)}.`
   }
 
   return 'Не удалось скачать файл. Проверьте ссылку или попробуйте позже.'
@@ -76,7 +77,11 @@ function formatBytes(bytes: number): string {
   return `${Number.isInteger(megabytes) ? megabytes : megabytes.toFixed(1)} МБ`
 }
 
-class FileTooLargeError extends Error {}
+class FileTooLargeError extends Error {
+  constructor(readonly maxFileSizeBytes: number) {
+    super()
+  }
+}
 
 export function cancelActiveDownloads(): number {
   for (const controller of activeDownloads) controller.abort()
@@ -155,6 +160,7 @@ async function downloadAndSend(
         temporaryDirectory,
         requestId,
         abortController.signal,
+        Math.min(config.MAX_FILE_SIZE, TELEGRAM_UPLOAD_LIMIT_BYTES),
       )
       logger.info('download.transcoding.completed', {
         requestId,
@@ -182,17 +188,18 @@ async function downloadAndSend(
 
     const fileSize = (await stat(mediaPath)).size
 
-    const isAdmin = Boolean(
-      context.from?.id && config.BOT_ADMIN_IDS.includes(context.from.id),
+    const maxUploadSize = Math.min(
+      config.MAX_FILE_SIZE,
+      TELEGRAM_UPLOAD_LIMIT_BYTES,
     )
 
-    if (!isAdmin && fileSize > config.MAX_FILE_SIZE) {
+    if (fileSize > maxUploadSize) {
       logger.warn('download.file_too_large', {
         requestId,
         fileSizeBytes: fileSize,
-        maxFileSizeBytes: config.MAX_FILE_SIZE,
+        maxFileSizeBytes: maxUploadSize,
       })
-      throw new FileTooLargeError()
+      throw new FileTooLargeError(maxUploadSize)
     }
 
     await statusMessage.editText('Отправляю...')
