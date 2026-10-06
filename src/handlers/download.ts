@@ -41,13 +41,14 @@ const downloaders: Record<VideoSource, Downloader> = {
 }
 
 const FORMAT_SELECTION_TTL_MS = 15 * 60 * 1_000
-const FORMAT_CALLBACK = /^download:([a-f0-9]{8}):(audio|[1-9]\d{1,4})$/u
+const FORMAT_CALLBACK = /^download:([a-f0-9]{8}):(audio|encode|[1-9]\d{1,4})$/u
 
 interface PendingFormatSelection {
   userId: number
   chatId: number
   parsedUrl: ParsedVideoUrl
   resolutions: number[]
+  encode: boolean
   expiresAt: number
 }
 
@@ -92,6 +93,25 @@ function pruneFormatSelections(): void {
   for (const [id, selection] of pendingFormatSelections) {
     if (selection.expiresAt <= now) pendingFormatSelections.delete(id)
   }
+}
+
+function buildFormatSelectionKeyboard(
+  selectionId: string,
+  resolutions: number[],
+  encode: boolean,
+): InlineKeyboard {
+  const keyboard = new InlineKeyboard().columns(3)
+  for (const resolution of resolutions) {
+    keyboard.text(`${resolution}p`, `download:${selectionId}:${resolution}`)
+  }
+  keyboard.row().text('MP3 (аудио)', `download:${selectionId}:audio`)
+  keyboard
+    .row()
+    .text(
+      `Перекодировать: ${encode ? 'вкл' : 'выкл'}`,
+      `download:${selectionId}:encode`,
+    )
+  return keyboard
 }
 
 async function downloadAndSend(
@@ -151,7 +171,7 @@ async function downloadAndSend(
       config.TELEGRAM_MAX_FILE_SIZE,
     )
 
-    if (selection?.type === 'video') {
+    if (selection?.type === 'video' && selection.encode) {
       await statusMessage.editText('Перекодирую для Telegram...')
       logger.info('download.transcoding.starting', {
         requestId,
@@ -301,17 +321,16 @@ async function offerFormatSelection(
       chatId: context.chatId,
       parsedUrl,
       resolutions,
+      encode: false,
       expiresAt: Date.now() + FORMAT_SELECTION_TTL_MS,
     })
 
-    const keyboard = new InlineKeyboard().columns(3)
-    for (const resolution of resolutions) {
-      keyboard.text(`${resolution}p`, `download:${selectionId}:${resolution}`)
-    }
-    keyboard.row().text('MP3 (аудио)', `download:${selectionId}:audio`)
-
     await statusMessage.editText('Выберите качество или аудиодорожку:', {
-      reply_markup: keyboard,
+      reply_markup: buildFormatSelectionKeyboard(
+        selectionId,
+        resolutions,
+        false,
+      ),
     })
   } catch (error) {
     if (selectionId) pendingFormatSelections.delete(selectionId)
@@ -423,10 +442,31 @@ export const downloadComposer = new Composer()
       return
     }
 
+    if (selectedValue === 'encode') {
+      pendingSelection.encode = !pendingSelection.encode
+      await context.answerCallbackQuery(
+        pendingSelection.encode
+          ? 'Перекодирование включено.'
+          : 'Перекодирование выключено.',
+      )
+      await context.editText('Выберите качество или аудиодорожку:', {
+        reply_markup: buildFormatSelectionKeyboard(
+          selectionId,
+          pendingSelection.resolutions,
+          pendingSelection.encode,
+        ),
+      })
+      return
+    }
+
     const selection: DownloadSelection =
       selectedValue === 'audio'
         ? { type: 'audio' }
-        : { type: 'video', height: Number(selectedValue) }
+        : {
+            type: 'video',
+            height: Number(selectedValue),
+            encode: pendingSelection.encode,
+          }
 
     if (
       selection.type === 'video' &&
@@ -446,7 +486,7 @@ export const downloadComposer = new Composer()
       await context.editText(
         selection.type === 'audio'
           ? 'Скачиваю аудиодорожку...'
-          : `Скачиваю видео ${selection.height}p...`,
+          : `Скачиваю видео ${selection.height}p${selection.encode ? ' с перекодированием' : ''}...`,
         { reply_markup: { inline_keyboard: [] } },
       )
       await downloadAndSend(

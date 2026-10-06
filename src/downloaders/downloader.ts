@@ -7,7 +7,7 @@ export interface DownloadRequest {
 }
 
 export type DownloadSelection =
-  | { type: 'video'; height: number }
+  | { type: 'video'; height: number; encode: boolean }
   | { type: 'audio' }
 
 export interface Downloader {
