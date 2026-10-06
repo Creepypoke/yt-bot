@@ -5,7 +5,6 @@ import { runDownloader } from './downloaders/cli.ts'
 const MAX_VIDEO_WIDTH = 480
 const TRANSCODING_SIZE_MARGIN = 0.94
 const AUDIO_BITRATE = 128_000
-const NORMALIZE_PIXEL_ASPECT_RATIO = "scale='trunc(ih*dar/2)*2':ih,setsar=1"
 
 export function calculateVideoBitrate(
   durationSeconds: number,
@@ -67,7 +66,7 @@ export function buildCompressionCommand(
   return buildVideoTranscodingCommand(
     inputPath,
     outputPath,
-    `scale='trunc(min(${MAX_VIDEO_WIDTH},ih*dar)/2)*2':-2,setsar=1`,
+    `scale='trunc(min(${MAX_VIDEO_WIDTH},iw)/2)*2':-2`,
   )
 }
 
@@ -106,12 +105,7 @@ export async function transcodeVideoForTelegram(
 
   const outputPath = join(outputDirectory, 'video-compatible.mp4')
   await runDownloader(
-    buildVideoTranscodingCommand(
-      inputPath,
-      outputPath,
-      NORMALIZE_PIXEL_ASPECT_RATIO,
-      videoBitrate,
-    ),
+    buildVideoTranscodingCommand(inputPath, outputPath, undefined, videoBitrate),
     requestId,
     signal,
   )

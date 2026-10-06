@@ -11,7 +11,7 @@ describe('buildCompressionCommand', () => {
     const command = buildCompressionCommand('input.webm', 'output.mp4')
 
     expect(command[0]).toBe('ffmpeg')
-    expect(command).toContain("scale='trunc(min(480,ih*dar)/2)*2':-2,setsar=1")
+    expect(command).toContain("scale='trunc(min(480,iw)/2)*2':-2")
     expect(command).toContain('libx264')
     expect(command).toContain('yuv420p')
     expect(command).toContain('aac')
