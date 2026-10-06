@@ -9,6 +9,7 @@ import {
 import type { Downloader, DownloadRequest } from './downloader.ts'
 
 const DEFAULT_MAX_HEIGHT = 480
+const YOUTUBE_PLAYER_CLIENT = 'youtube:player_client=tv_simply'
 
 interface YouTubeFormat {
   ext?: unknown
@@ -22,6 +23,13 @@ interface YouTubeMetadata {
 
 export function buildYouTubeFormatSelector(height: number): string {
   return `bv*[height<=${height}][ext=mp4]+ba[ext=m4a]/b[height<=${height}][ext=mp4]/b[height<=${height}]`
+}
+
+function addYouTubeExtractorOptions(command: string[]): void {
+  // The regular web client increasingly requires a proof-of-origin token for
+  // media URLs, which produces HTTP 403 from server-side downloaders. The
+  // TV client is supported by yt-dlp and does not require that web-only flow.
+  command.push('--extractor-args', YOUTUBE_PLAYER_CLIENT)
 }
 
 export function extractAvailableResolutions(
@@ -81,6 +89,7 @@ export class YouTubeDownloader implements Downloader {
       join(request.outputDirectory, 'metadata'),
     ]
 
+    addYouTubeExtractorOptions(command)
     await this.addConnectionOptions(command, request.outputDirectory)
     command.push('--', request.url)
     await runDownloader(command, request.requestId, request.signal)
@@ -122,6 +131,7 @@ export class YouTubeDownloader implements Downloader {
     }
 
     command.push('--output', join(request.outputDirectory, 'video.%(ext)s'))
+    addYouTubeExtractorOptions(command)
     await this.addConnectionOptions(command, request.outputDirectory)
     command.push('--', request.url)
     await runDownloader(command, request.requestId, request.signal)

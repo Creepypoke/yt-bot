@@ -28,6 +28,7 @@ cp .env.example .env
 | `DOWNLOAD_DIR`      | нет         | Родительский каталог временных загрузок, по умолчанию `./downloads`       |
 | `MAX_FILE_SIZE`     | нет         | Максимальный размер отправляемого файла в байтах, по умолчанию `50000000` |
 | `COMPRESS_TO_480P`  | нет         | Сжимать Shorts и Reels до ширины не более 480 px; по умолчанию `true`     |
+| `TELEGRAM_POLL_RETRY_MS` | нет     | Задержка перед повтором long polling после временной ошибки Telegram; `5000` |
 | `BOT_ADMIN_IDS`     | нет         | Telegram ID администраторов через запятую                                 |
 | `INSTAGRAM_COOKIES` | нет         | Путь к cookies в Netscape-формате для Instagram                           |
 | `INSTAGRAM_PROXY`   | нет         | URL прокси для `gallery-dl`, включая `socks5://` и `socks5h://`           |
@@ -39,6 +40,14 @@ YouTube cookies могут повысить стабильность при `HTT
 отдельного YouTube-аккаунта и передайте путь через `YOUTUBE_COOKIES`. Один файл
 может содержать cookies для обоих сервисов. Не добавляйте cookies и `.env` в
 репозиторий.
+
+Образ устанавливает актуальные `yt-dlp` и `yt-dlp-ejs` при сборке. Если YouTube
+изменит защиту, пересоберите образ с загрузкой свежих базовых слоёв:
+
+```bash
+docker compose build --pull --no-cache
+docker compose up -d
+```
 
 Прокси настраивается независимо для каждого загрузчика и не используется для
 подключения бота к Telegram API. Чтобы DNS-запросы также выполнялись через

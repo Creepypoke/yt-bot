@@ -1,9 +1,10 @@
 FROM oven/bun:1.3.2-debian
 
+# yt-dlp-ejs supplies the current YouTube JavaScript challenge solver.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates ffmpeg python3 python3-venv \
     && python3 -m venv /opt/downloaders \
-    && /opt/downloaders/bin/pip install --no-cache-dir yt-dlp gallery-dl PySocks \
+    && /opt/downloaders/bin/pip install --no-cache-dir --upgrade yt-dlp yt-dlp-ejs gallery-dl PySocks \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/opt/downloaders/bin:${PATH}" \

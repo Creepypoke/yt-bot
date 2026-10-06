@@ -38,6 +38,7 @@ logger.info('bot.starting', {
   downloadDirectory: config.DOWNLOAD_DIR,
   maxFileSizeBytes: config.MAX_FILE_SIZE,
   healthcheckPort: config.HEALTHCHECK_PORT,
+  telegramPollRetryMs: config.TELEGRAM_POLL_RETRY_MS,
   instagramCookiesConfigured: Boolean(config.INSTAGRAM_COOKIES),
 })
 await bot.start()
