@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { runDownloader } from './downloaders/cli.ts'
 
 const MAX_VIDEO_WIDTH = 480
-export const TELEGRAM_UPLOAD_LIMIT_BYTES = 50_000_000
 const TRANSCODING_SIZE_MARGIN = 0.94
 const AUDIO_BITRATE = 128_000
 
@@ -91,16 +90,17 @@ export async function transcodeVideoForTelegram(
   outputDirectory: string,
   requestId: string,
   signal: AbortSignal,
-  targetFileSizeBytes: number,
+  targetFileSizeBytes?: number,
 ): Promise<string> {
-  const durationSeconds = await getMediaDuration(inputPath, signal)
-  const videoBitrate = calculateVideoBitrate(
-    durationSeconds,
-    targetFileSizeBytes,
-  )
+  let videoBitrate: number | undefined
 
-  if (videoBitrate < 100_000) {
-    throw new Error('Video is too long to fit within Telegram upload limits')
+  if (targetFileSizeBytes) {
+    const durationSeconds = await getMediaDuration(inputPath, signal)
+    videoBitrate = calculateVideoBitrate(durationSeconds, targetFileSizeBytes)
+
+    if (videoBitrate < 100_000) {
+      throw new Error('Video is too long to fit within Telegram upload limits')
+    }
   }
 
   const outputPath = join(outputDirectory, 'video-compatible.mp4')

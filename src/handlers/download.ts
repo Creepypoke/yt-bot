@@ -22,7 +22,6 @@ import {
 } from '../url-parser.ts'
 import {
   compressVideoTo480p,
-  TELEGRAM_UPLOAD_LIMIT_BYTES,
   transcodeVideoForTelegram,
 } from '../video-compressor.ts'
 
@@ -147,6 +146,10 @@ async function downloadAndSend(
       fileSizeBytes: downloadedFileSize,
       elapsedMs: Math.round(performance.now() - startedAt),
     })
+    const maxUploadSize = Math.min(
+      config.MAX_FILE_SIZE,
+      config.TELEGRAM_MAX_FILE_SIZE,
+    )
 
     if (selection?.type === 'video') {
       await statusMessage.editText('Перекодирую для Telegram...')
@@ -160,7 +163,7 @@ async function downloadAndSend(
         temporaryDirectory,
         requestId,
         abortController.signal,
-        Math.min(config.MAX_FILE_SIZE, TELEGRAM_UPLOAD_LIMIT_BYTES),
+        maxUploadSize <= 50_000_000 ? maxUploadSize : undefined,
       )
       logger.info('download.transcoding.completed', {
         requestId,
@@ -187,11 +190,6 @@ async function downloadAndSend(
     }
 
     const fileSize = (await stat(mediaPath)).size
-
-    const maxUploadSize = Math.min(
-      config.MAX_FILE_SIZE,
-      TELEGRAM_UPLOAD_LIMIT_BYTES,
-    )
 
     if (fileSize > maxUploadSize) {
       logger.warn('download.file_too_large', {

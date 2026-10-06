@@ -39,6 +39,10 @@ logger.info('bot.starting', {
   maxFileSizeBytes: config.MAX_FILE_SIZE,
   healthcheckPort: config.HEALTHCHECK_PORT,
   telegramPollRetryMs: config.TELEGRAM_POLL_RETRY_MS,
+  telegramMaxFileSizeBytes: config.TELEGRAM_MAX_FILE_SIZE,
+  telegramUsesLocalApi: !config.TELEGRAM_API_BASE_URL.startsWith(
+    'https://api.telegram.org/',
+  ),
   instagramCookiesConfigured: Boolean(config.INSTAGRAM_COOKIES),
 })
 await bot.start()

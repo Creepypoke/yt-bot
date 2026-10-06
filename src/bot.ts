@@ -8,7 +8,10 @@ import { logger } from './logger.ts'
 import { composer } from './plugins/index.ts'
 
 export const bot = new Bot(config.BOT_TOKEN, {
-  api: { retryGetUpdatesWait: config.TELEGRAM_POLL_RETRY_MS },
+  api: {
+    baseURL: config.TELEGRAM_API_BASE_URL,
+    retryGetUpdatesWait: config.TELEGRAM_POLL_RETRY_MS,
+  },
 })
   .extend(composer)
   .extend(startComposer)

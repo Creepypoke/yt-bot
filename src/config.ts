@@ -25,6 +25,16 @@ export const config = {
     .get('TELEGRAM_POLL_RETRY_MS')
     .default('5000')
     .asIntPositive(),
+  TELEGRAM_API_BASE_URL: env
+    .get('TELEGRAM_API_BASE_URL')
+    .default('https://api.telegram.org/bot')
+    .asString(),
+  // Telegram's public Bot API accepts 50 MB uploads; a local Bot API server
+  // running in local mode supports uploads up to 2 GB.
+  TELEGRAM_MAX_FILE_SIZE: env
+    .get('TELEGRAM_MAX_FILE_SIZE')
+    .default('50000000')
+    .asIntPositive(),
   BOT_ADMIN_IDS: env
     .get('BOT_ADMIN_IDS')
     .default('')

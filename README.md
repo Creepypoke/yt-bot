@@ -29,6 +29,8 @@ cp .env.example .env
 | `MAX_FILE_SIZE`     | нет         | Максимальный размер отправляемого файла в байтах, по умолчанию `50000000` |
 | `COMPRESS_TO_480P`  | нет         | Сжимать Shorts и Reels до ширины не более 480 px; по умолчанию `true`     |
 | `TELEGRAM_POLL_RETRY_MS` | нет     | Задержка перед повтором long polling после временной ошибки Telegram; `5000` |
+| `TELEGRAM_API_BASE_URL` | нет      | Базовый URL Bot API; публичный API по умолчанию                             |
+| `TELEGRAM_MAX_FILE_SIZE` | нет     | Лимит файла Bot API: `50 MB` публичный, `2 GB` для local mode               |
 | `BOT_ADMIN_IDS`     | нет         | Telegram ID администраторов через запятую                                 |
 | `INSTAGRAM_COOKIES` | нет         | Путь к cookies в Netscape-формате для Instagram                           |
 | `INSTAGRAM_PROXY`   | нет         | URL прокси для `gallery-dl`, включая `socks5://` и `socks5h://`           |
@@ -41,6 +43,12 @@ YouTube cookies могут повысить стабильность при `HTT
 отдельного YouTube-аккаунта и передайте путь через `YOUTUBE_COOKIES`. Один файл
 может содержать cookies для обоих сервисов. Не добавляйте cookies и `.env` в
 репозиторий.
+
+Для длинных видео `docker-compose.yaml` также запускает self-hosted Telegram
+Bot API в local mode, который принимает файлы до 2 GB. Укажите `TELEGRAM_API_ID`
+и `TELEGRAM_API_HASH` из [my.telegram.org](https://my.telegram.org/apps) в
+переменных окружения. Этот сервис доступен только внутри Docker-сети и не
+публикует порт наружу.
 
 YouTube требует динамический PO-токен для многих видео, особенно с серверных
 IP-адресов. `docker-compose.yaml` запускает совместимый сервис автоматически.

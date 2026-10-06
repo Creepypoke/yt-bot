@@ -10,8 +10,13 @@ services:
       INSTAGRAM_COOKIES: /run/secrets/cookies.txt
       YOUTUBE_COOKIES: /run/secrets/cookies.txt
       YOUTUBE_POT_PROVIDER_URL: http://pot-provider:4416
+      TELEGRAM_API_BASE_URL: http://telegram-bot-api:8081/bot
+      TELEGRAM_MAX_FILE_SIZE: 2000000000
     init: true
     restart: unless-stopped
+    depends_on:
+      - pot-provider
+      - telegram-bot-api
     expose:
       - "3000"
     volumes:
@@ -26,6 +31,19 @@ services:
     image: brainicism/bgutil-ytdlp-pot-provider:latest
     init: true
     restart: unless-stopped
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    env_file:
+      - .env
+    environment:
+      TELEGRAM_LOCAL: "true"
+    init: true
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: telegram-bot-api-data
+        target: /var/lib/telegram-bot-api
 
 volumes:
   video-downloads:
+  telegram-bot-api-data:
