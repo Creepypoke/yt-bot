@@ -30,6 +30,7 @@ const activeDownloads = new Set<AbortController>()
 const youtubeDownloader = new YouTubeDownloader(
   config.YOUTUBE_COOKIES,
   config.YOUTUBE_PROXY,
+  config.YOUTUBE_POT_PROVIDER_URL,
 )
 const downloaders: Record<VideoSource, Downloader> = {
   youtube: youtubeDownloader,

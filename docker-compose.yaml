@@ -9,6 +9,7 @@ services:
       DOWNLOAD_DIR: /app/downloads
       INSTAGRAM_COOKIES: /run/secrets/cookies.txt
       YOUTUBE_COOKIES: /run/secrets/cookies.txt
+      YOUTUBE_POT_PROVIDER_URL: http://pot-provider:4416
     init: true
     restart: unless-stopped
     expose:
@@ -21,6 +22,10 @@ services:
       - type: volume
         source: video-downloads
         target: /app/downloads
+  pot-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider:latest
+    init: true
+    restart: unless-stopped
 
 volumes:
   video-downloads:

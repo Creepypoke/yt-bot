@@ -34,6 +34,7 @@ cp .env.example .env
 | `INSTAGRAM_PROXY`   | нет         | URL прокси для `gallery-dl`, включая `socks5://` и `socks5h://`           |
 | `YOUTUBE_COOKIES`   | нет         | Путь к cookies в Netscape-формате для YouTube                             |
 | `YOUTUBE_PROXY`     | нет         | URL прокси для `yt-dlp`, включая `socks5://` и `socks5h://`               |
+| `YOUTUBE_POT_PROVIDER_URL` | нет  | URL сервиса bgutil для динамических YouTube PO-токенов                    |
 
 YouTube cookies могут повысить стабильность при `HTTP 403`, проверках аккаунта
 или ограничениях по возрасту. Экспортируйте cookies в Netscape-формате из
@@ -41,8 +42,16 @@ YouTube cookies могут повысить стабильность при `HTT
 может содержать cookies для обоих сервисов. Не добавляйте cookies и `.env` в
 репозиторий.
 
-Образ устанавливает актуальные `yt-dlp` и `yt-dlp-ejs` при сборке. Если YouTube
-изменит защиту, пересоберите образ с загрузкой свежих базовых слоёв:
+YouTube требует динамический PO-токен для многих видео, особенно с серверных
+IP-адресов. `docker-compose.yaml` запускает совместимый сервис автоматически.
+При запуске без Compose поднимите отдельный
+[`bgutil-ytdlp-pot-provider`](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)
+и задайте его URL через `YOUTUBE_POT_PROVIDER_URL`. Токены привязаны к видео,
+поэтому вручную сохранённый токен не является надёжной заменой сервиса.
+
+Образ устанавливает актуальные `yt-dlp`, `yt-dlp-ejs` и клиент bgutil при
+сборке. Если YouTube изменит защиту, пересоберите образ с загрузкой свежих
+базовых слоёв:
 
 ```bash
 docker compose build --pull --no-cache

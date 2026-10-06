@@ -38,4 +38,5 @@ export const config = {
   INSTAGRAM_PROXY: env.get('INSTAGRAM_PROXY').asString(),
   YOUTUBE_COOKIES: env.get('YOUTUBE_COOKIES').asString(),
   YOUTUBE_PROXY: env.get('YOUTUBE_PROXY').asString(),
+  YOUTUBE_POT_PROVIDER_URL: env.get('YOUTUBE_POT_PROVIDER_URL').asString(),
 }
