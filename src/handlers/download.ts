@@ -12,6 +12,7 @@ import {
   type DownloadSelection,
 } from '../downloaders/downloader.ts'
 import { InstagramDownloader } from '../downloaders/instagram-downloader.ts'
+import { VkDownloader } from '../downloaders/vk-downloader.ts'
 import { YouTubeDownloader } from '../downloaders/youtube-downloader.ts'
 import { logger } from '../logger.ts'
 import { composer } from '../plugins/index.ts'
@@ -32,8 +33,10 @@ const youtubeDownloader = new YouTubeDownloader(
   config.YOUTUBE_PROXY,
   config.YOUTUBE_POT_PROVIDER_URL,
 )
+const vkDownloader = new VkDownloader(config.VK_COOKIES, config.VK_PROXY)
 const downloaders: Record<VideoSource, Downloader> = {
   youtube: youtubeDownloader,
+  vk: vkDownloader,
   instagram: new InstagramDownloader(
     config.INSTAGRAM_COOKIES,
     config.INSTAGRAM_PROXY,
@@ -303,7 +306,9 @@ async function offerFormatSelection(
     statusMessage = await context.send('Получаю доступные форматы...')
     await mkdir(config.DOWNLOAD_DIR, { recursive: true })
     temporaryDirectory = await mkdtemp(join(config.DOWNLOAD_DIR, 'request-'))
-    const resolutions = await youtubeDownloader.getAvailableResolutions({
+    const downloader =
+      parsedUrl.source === 'vk' ? vkDownloader : youtubeDownloader
+    const resolutions = await downloader.getAvailableResolutions({
       requestId,
       url: parsedUrl.url,
       outputDirectory: temporaryDirectory,
@@ -371,7 +376,7 @@ export const downloadComposer = new Composer()
       })
       await context.send(
         isAdmin
-          ? 'Пришлите ссылку на YouTube-видео, YouTube Shorts или Instagram Reels.'
+          ? 'Пришлите ссылку на YouTube-видео, VK Видео (vk.ru или vkvideo.ru), YouTube Shorts или Instagram Reels.'
           : 'Пришлите ссылку на YouTube Shorts или Instagram Reels.',
       )
       return
@@ -391,7 +396,7 @@ export const downloadComposer = new Composer()
       return
     }
 
-    if (parsedUrl.isLongYouTubeVideo) {
+    if (parsedUrl.isLongYouTubeVideo || parsedUrl.source === 'vk') {
       await offerFormatSelection(context, userId, parsedUrl)
       return
     }

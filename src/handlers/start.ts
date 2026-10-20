@@ -18,7 +18,7 @@ export const startComposer = new Composer()
 
     return context.send(
       isAdmin
-        ? 'Пришлите ссылку на YouTube-видео, YouTube Shorts или Instagram Reels. Для обычного YouTube-видео можно выбрать качество или MP3.'
+        ? 'Пришлите ссылку на YouTube-видео, VK Видео (vk.ru или vkvideo.ru), YouTube Shorts или Instagram Reels. Для обычного YouTube-видео и VK Видео можно выбрать качество или MP3.'
         : 'Пришлите ссылку на YouTube Shorts или Instagram Reels — я скачаю и отправлю видео.',
     )
   })

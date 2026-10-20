@@ -49,4 +49,6 @@ export const config = {
   YOUTUBE_COOKIES: env.get('YOUTUBE_COOKIES').asString(),
   YOUTUBE_PROXY: env.get('YOUTUBE_PROXY').asString(),
   YOUTUBE_POT_PROVIDER_URL: env.get('YOUTUBE_POT_PROVIDER_URL').asString(),
+  VK_COOKIES: env.get('VK_COOKIES').asString(),
+  VK_PROXY: env.get('VK_PROXY').asString(),
 }
