@@ -104,12 +104,14 @@ if (args.includes('--skip-download')) {
       ...request,
       selection: { type: 'audio' },
     })
-    expect(path).toBe(join(directory, 'video.mp3'))
+    expect(path).toBe(join(directory, '%(title)s.mp3'))
     const args = JSON.parse(
-      await readFile(join(directory, 'video.%(ext)s.args.json'), 'utf8'),
+      await readFile(join(directory, '%(title)s.%(ext)s.args.json'), 'utf8'),
     ) as string[]
     expect(args).toContain('--extract-audio')
     expect(args[args.indexOf('--audio-format') + 1]).toBe('mp3')
     expect(args).not.toContain('--format')
+    expect(args).toContain('--embed-metadata')
+    expect(args).toContain('--write-info-json')
   })
 })

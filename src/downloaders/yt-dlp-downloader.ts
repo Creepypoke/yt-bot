@@ -8,8 +8,6 @@ import {
 } from './cli.ts'
 import type { Downloader, DownloadRequest } from './downloader.ts'
 
-const DEFAULT_MAX_HEIGHT = 480
-
 interface VideoFormat {
   ext?: unknown
   height?: unknown
@@ -101,6 +99,14 @@ export class YtDlpDownloader implements Downloader {
   }
 
   async download(request: DownloadRequest): Promise<string> {
+    const isAudio = request.selection?.type === 'audio'
+    // When extracting audio, preserve the video title in the filename and embed
+    // metadata (artist/title/genre/etc.) so Telegram shows the video's name and
+    // creator instead of a generic filename.
+    const outputTemplate = isAudio
+      ? '%(title)s.%(ext)s'
+      : 'video.%(ext)s'
+
     const command = [
       'yt-dlp',
       '--no-playlist',
@@ -109,31 +115,33 @@ export class YtDlpDownloader implements Downloader {
       'bun',
 
       '--restrict-filenames',
+      '--write-info-json',
     ]
 
-    if (request.selection?.type === 'audio') {
+    if (isAudio) {
       command.push(
         '--extract-audio',
         '--audio-format',
         'mp3',
         '--audio-quality',
         '5',
+        '--embed-metadata',
       )
-    } else {
+    } else if (request.selection?.type === 'video') {
       command.push(
         '--format',
-        buildFormatSelector(request.selection?.height ?? DEFAULT_MAX_HEIGHT),
+        buildFormatSelector(request.selection.height),
         '--merge-output-format',
         'mp4',
       )
     }
 
-    command.push('--output', join(request.outputDirectory, 'video.%(ext)s'))
+    command.push('--output', join(request.outputDirectory, outputTemplate))
     await this.addConnectionOptions(command, request.outputDirectory)
     command.push('--', request.url)
     await runDownloader(command, request.requestId, request.signal)
 
-    return request.selection?.type === 'audio'
+    return isAudio
       ? findDownloadedAudio(request.outputDirectory, request.requestId)
       : findDownloadedVideo(request.outputDirectory, request.requestId)
   }

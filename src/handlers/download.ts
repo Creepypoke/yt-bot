@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, mkdtemp, rm, stat } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, rm, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import type { MessageContext } from '@gramio/contexts'
@@ -78,6 +78,39 @@ function userFacingError(error: unknown): string {
 function formatBytes(bytes: number): string {
   const megabytes = bytes / 1_000_000
   return `${Number.isInteger(megabytes) ? megabytes : megabytes.toFixed(1)} МБ`
+}
+
+/**
+ * Read the yt-dlp info.json written next to the audio file and map its fields
+ * to the Telegram audio title/performer. The info.json is named after the title
+ * (`<title>.info.json`), so it is located by suffix. Returns `null` when no
+ * metadata is available so the upload is unaffected.
+ */
+async function readAudioMetadata(
+  temporaryDirectory: string,
+  requestId: string,
+): Promise<{ title: string; performer: string } | null> {
+  try {
+    const entries = await readdir(temporaryDirectory, { withFileTypes: true })
+    const infoEntry = entries.find(
+      (entry) =>
+        entry.isFile() && entry.name.toLowerCase().endsWith('.info.json'),
+    )
+    if (!infoEntry) return null
+    const info = JSON.parse(
+      await readFile(join(temporaryDirectory, infoEntry.name), 'utf8'),
+    )
+    const title = info.title?.toString().trim()
+    const performer = info.uploader_str?.toString().trim()
+    if (!title && !performer) return null
+    return { title, performer }
+  } catch (error) {
+    logger.debug('download.audio.metadata.read_failed', {
+      requestId,
+      error,
+    })
+    return null
+  }
 }
 
 class FileTooLargeError extends Error {
@@ -230,7 +263,14 @@ async function downloadAndSend(
     })
     const upload = await MediaUpload.path(mediaPath)
     if (selection?.type === 'audio') {
-      await context.sendAudio(upload)
+      const metadata = await readAudioMetadata(
+        temporaryDirectory,
+        requestId,
+      )
+      await context.sendAudio(upload, {
+        title: metadata?.title,
+        performer: metadata?.performer,
+      })
     } else {
       await context.sendVideo(upload)
     }
