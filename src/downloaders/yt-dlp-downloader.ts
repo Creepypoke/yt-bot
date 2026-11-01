@@ -107,8 +107,6 @@ export class YtDlpDownloader implements Downloader {
       '--no-progress',
       '--js-runtimes',
       'bun',
-
-      '--restrict-filenames',
     ]
 
     if (request.selection?.type === 'audio') {
@@ -118,17 +116,26 @@ export class YtDlpDownloader implements Downloader {
         'mp3',
         '--audio-quality',
         '5',
+        '--embed-metadata',
+        // Use the video title even when the extractor provides a music track title.
+        '--parse-metadata',
+        'title:%(meta_title)s',
+        '--no-restrict-filenames',
+        '--windows-filenames',
+        '--output',
+        join(request.outputDirectory, '%(title).180B.%(ext)s'),
       )
     } else {
       command.push(
+        '--restrict-filenames',
         '--format',
         buildFormatSelector(request.selection?.height ?? DEFAULT_MAX_HEIGHT),
         '--merge-output-format',
         'mp4',
+        '--output',
+        join(request.outputDirectory, 'video.%(ext)s'),
       )
     }
-
-    command.push('--output', join(request.outputDirectory, 'video.%(ext)s'))
     await this.addConnectionOptions(command, request.outputDirectory)
     command.push('--', request.url)
     await runDownloader(command, request.requestId, request.signal)
