@@ -20,7 +20,7 @@ export const config = {
   // Transcode every downloaded video to an MP4 no wider than 480 pixels.
   COMPRESS_TO_480P: env.get('COMPRESS_TO_480P').default('true').asBoolStrict(),
   HEALTHCHECK_PORT: env.get('HEALTHCHECK_PORT').default('3000').asPortNumber(),
-  // Wait before retrying long polling after a transient Telegram API failure.
+  // Wait before retrying startup or long polling after a Telegram API failure.
   TELEGRAM_POLL_RETRY_MS: env
     .get('TELEGRAM_POLL_RETRY_MS')
     .default('5000')
