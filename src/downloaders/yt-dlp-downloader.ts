@@ -8,6 +8,8 @@ import {
 } from './cli.ts'
 import type { Downloader, DownloadRequest } from './downloader.ts'
 
+const DEFAULT_MAX_HEIGHT = 480
+
 interface VideoFormat {
   ext?: unknown
   height?: unknown
@@ -102,10 +104,11 @@ export class YtDlpDownloader implements Downloader {
     const isAudio = request.selection?.type === 'audio'
     // When extracting audio, preserve the video title in the filename and embed
     // metadata (artist/title/genre/etc.) so Telegram shows the video's name and
-    // creator instead of a generic filename.
-    const outputTemplate = isAudio
-      ? '%(title)s.%(ext)s'
-      : 'video.%(ext)s'
+    // creator instead of a generic filename. Non-ASCII titles are written
+    // verbatim (not reduced to underscores), so `--windows-filenames` keeps the
+    // filename within Windows-safe limits while preserving the full title. The
+    // `.180B` bound prevents "File name too long" errors.
+    const outputTemplate = isAudio ? '%(title).180B.%(ext)s' : 'video.%(ext)s'
 
     const command = [
       'yt-dlp',
@@ -114,8 +117,7 @@ export class YtDlpDownloader implements Downloader {
       '--js-runtimes',
       'bun',
 
-      '--restrict-filenames',
-      '--write-info-json',
+      '--windows-filenames',
     ]
 
     if (isAudio) {
@@ -126,11 +128,18 @@ export class YtDlpDownloader implements Downloader {
         '--audio-quality',
         '5',
         '--embed-metadata',
+        // Write the info.json so readAudioMetadata can read the title/creator
+        // for the Telegram upload. Only needed for audio, never for video.
+        '--write-info-json',
       )
-    } else if (request.selection?.type === 'video') {
+    } else {
+      const height =
+        request.selection?.type === 'video'
+          ? request.selection.height
+          : DEFAULT_MAX_HEIGHT
       command.push(
         '--format',
-        buildFormatSelector(request.selection.height),
+        buildFormatSelector(height),
         '--merge-output-format',
         'mp4',
       )
