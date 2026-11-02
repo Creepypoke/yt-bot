@@ -107,8 +107,6 @@ export class YtDlpDownloader implements Downloader {
       '--no-progress',
       '--js-runtimes',
       'bun',
-
-      '--restrict-filenames',
     ]
 
     if (request.selection?.type === 'audio') {
@@ -118,17 +116,74 @@ export class YtDlpDownloader implements Downloader {
         'mp3',
         '--audio-quality',
         '5',
+        '--embed-metadata',
+        // Seed from the video title, then override only with a nonblank track.
+        // yt-dlp's default picks empty strings before fallback fields, so use
+        // nonempty captures for both title and performer. Missing fields expand
+        // to an empty string instead of the default "NA" placeholder.
+        '--parse-metadata',
+        '%(title|)s:(?s)^\\s*(?P<meta_title>\\S(?:.*\\S)?)\\s*$',
+        '--parse-metadata',
+        '%(track|)s:(?s)^\\s*(?P<meta_title>\\S(?:.*\\S)?)\\s*$',
+        '--windows-filenames',
+        '--output',
+        join(request.outputDirectory, '%(title).180B.%(ext)s'),
       )
+      // Later nonblank fields override earlier fallbacks.
+      for (const field of [
+        'channel',
+        'uploader_id',
+        'uploader',
+        'creators',
+        'creator',
+        'artists',
+        'artist',
+      ]) {
+        let source = field
+        if (field.endsWith('s')) {
+          // Keep list boundaries until blank entries are removed; joining with
+          // commas first would turn an entirely blank list into a valid artist.
+          source = 'audio_performers'
+          command.push(
+            '--parse-metadata',
+            `%(${field}|)#l:(?s)(?P<audio_performers>.*)`,
+            '--replace-in-metadata',
+            source,
+            '^\\s+|\\s+$|\\n[^\\S\\n]*(?=\\n)',
+            '',
+            '--replace-in-metadata',
+            source,
+            '\\n',
+            ', ',
+          )
+          const singular = field.slice(0, -1)
+          // yt-dlp also synthesizes the scalar from an absent scalar's list.
+          // Normalize that copy too, without overriding a distinct scalar.
+          command.push(
+            '--parse-metadata',
+            `%(${singular}|)s:(?s)(?P<audio_scalar_${singular}>.*)`,
+            '--parse-metadata',
+            `%(${singular}|)s\n%(${field}|)l\n%(${source}|)s:(?s)^(?P<audio_joined_${singular}>.*?)\n(?P=audio_joined_${singular})\n(?P<audio_scalar_${singular}>.*)$`,
+          )
+        } else if (field === 'artist' || field === 'creator') {
+          source = `audio_scalar_${field}`
+        }
+        command.push(
+          '--parse-metadata',
+          `%(${source}|)s:(?s)^\\s*(?P<meta_artist>\\S(?:.*\\S)?)\\s*$`,
+        )
+      }
     } else {
       command.push(
+        '--restrict-filenames',
         '--format',
         buildFormatSelector(request.selection?.height ?? DEFAULT_MAX_HEIGHT),
         '--merge-output-format',
         'mp4',
+        '--output',
+        join(request.outputDirectory, 'video.%(ext)s'),
       )
     }
-
-    command.push('--output', join(request.outputDirectory, 'video.%(ext)s'))
     await this.addConnectionOptions(command, request.outputDirectory)
     command.push('--', request.url)
     await runDownloader(command, request.requestId, request.signal)
