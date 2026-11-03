@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import type { MessageContext } from '@gramio/contexts'
 import { Composer, InlineKeyboard, MediaUpload, type AnyBot } from 'gramio'
 
+import { sendAudioFile } from '../audio-upload.ts'
 import { config } from '../config.ts'
 import {
   DownloadError,
@@ -228,11 +229,10 @@ async function downloadAndSend(
       requestId,
       fileSizeBytes: fileSize,
     })
-    const upload = await MediaUpload.path(mediaPath)
     if (selection?.type === 'audio') {
-      await context.sendAudio(upload)
+      await sendAudioFile(context, mediaPath, requestId, abortController.signal)
     } else {
-      await context.sendVideo(upload)
+      await context.sendVideo(await MediaUpload.path(mediaPath))
     }
     logger.info('download.request.completed', {
       requestId,

@@ -33,7 +33,7 @@ if (args.includes('--skip-download')) {
     {ext: 'm4a', vcodec: 'none'},
   ]}))
 } else {
-  await Bun.write(output.replace('%(ext)s', args.includes('--extract-audio') ? 'mp3' : 'mp4'), 'media')
+  await Bun.write(output.replace('%(title).180B', 'Название ролика').replace('%(ext)s', args.includes('--extract-audio') ? 'mp3' : 'mp4'), 'media')
 }
 `,
     )
@@ -104,10 +104,14 @@ if (args.includes('--skip-download')) {
       ...request,
       selection: { type: 'audio' },
     })
-    expect(path).toBe(join(directory, 'video.mp3'))
+    expect(path).toBe(join(directory, 'Название ролика.mp3'))
     const args = JSON.parse(
-      await readFile(join(directory, 'video.%(ext)s.args.json'), 'utf8'),
+      await readFile(
+        join(directory, '%(title).180B.%(ext)s.args.json'),
+        'utf8',
+      ),
     ) as string[]
+    expect(args).toContain('--embed-metadata')
     expect(args).toContain('--extract-audio')
     expect(args[args.indexOf('--audio-format') + 1]).toBe('mp3')
     expect(args).not.toContain('--format')
