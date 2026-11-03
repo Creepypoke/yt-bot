@@ -14,8 +14,10 @@ ENV PATH="/opt/downloaders/bin:${PATH}" \
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+COPY package.json pnpm-lock.yaml ./
+# Bun is the runtime, pnpm is the package manager: install pnpm via Bun.
+RUN bun add -g pnpm \
+    && pnpm install --frozen-lockfile --production
 
 COPY tsconfig.json ./
 COPY src ./src

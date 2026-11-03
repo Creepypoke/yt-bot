@@ -124,11 +124,12 @@ components. Не добавляйте адреса прокси с учетны�
 
 ## Локальный запуск
 
-Требования: [Bun](https://bun.sh/), `yt-dlp`, `gallery-dl` и `ffmpeg`; все
-четыре команды должны быть доступны через `PATH`.
+Требования: [Bun](https://bun.sh/) (runtime), [pnpm](https://pnpm.io/)
+(пакетный менеджер), `yt-dlp`, `gallery-dl` и `ffmpeg`; все четыре команды
+должны быть доступны через `PATH`.
 
 ```bash
-bun install
+pnpm install
 bun run dev
 ```
 
