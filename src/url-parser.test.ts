@@ -61,6 +61,26 @@ describe('parseVideoUrl', () => {
     ).toBeUndefined()
   })
 
+  test('parses a YouTube Live stream URL', () => {
+    expect(
+      parseVideoUrl('https://www.youtube.com/live/Mvq2EadSB9Y?si=fOpebt8UcF-jGtb0'),
+    ).toEqual({
+      source: 'youtube',
+      url: 'https://www.youtube.com/live/Mvq2EadSB9Y?si=fOpebt8UcF-jGtb0',
+      isLongYouTubeVideo: true,
+    })
+  })
+
+  test('parses a YouTube Live stream URL on m.youtube.com', () => {
+    expect(
+      parseVideoUrl('https://m.youtube.com/live/abc_123?si=test'),
+    ).toEqual({
+      source: 'youtube',
+      url: 'https://m.youtube.com/live/abc_123?si=test',
+      isLongYouTubeVideo: true,
+    })
+  })
+
   test('parses VK videos on supported domains for admins', () => {
     for (const host of [
       'vk.ru',

@@ -24,6 +24,15 @@ function parseSourceFromUrl(
     return { source: 'youtube' }
   }
 
+  // Live streams: /live/<video_id>
+  if (
+    (host === 'youtube.com' || host === 'm.youtube.com') &&
+    path[0]?.toLowerCase() === 'live' &&
+    Boolean(path[1])
+  ) {
+    return { source: 'youtube', isLongYouTubeVideo: true }
+  }
+
   if (
     allowRegularVideos &&
     (((host === 'youtube.com' || host === 'm.youtube.com') &&

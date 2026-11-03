@@ -109,6 +109,11 @@ export class YtDlpDownloader implements Downloader {
       'bun',
     ]
 
+    // For long YouTube videos (including live streams), use --live-from-start to download the entire stream.
+    if (request.url.includes('youtube.com') && request.url.includes('/watch?v=')) {
+      command.push('--live-from-start')
+    }
+
     if (request.selection?.type === 'audio') {
       command.push(
         '--extract-audio',
